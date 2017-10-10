@@ -1,0 +1,24 @@
+{
+    "name": "ideato/instagram-feed",
+    "description": "Retrieve data from Instagram feed",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Simone D'Amico",
+            "email": "sd@ideato.it"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "InstagramFeed\\": "src"
+        }
+    },
+    "require": {
+        "symfony/cache": "^3.3",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^6.4"
+    }
+}
