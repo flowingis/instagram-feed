@@ -2,62 +2,50 @@
 
 namespace InstagramFeed;
 
-use InstagramFeed\Client\Client;
-use InstagramFeed\Exception\InstagramFeedException;
-use InstagramFeed\Model\Media;
+use Psr\Cache\CacheItemPoolInterface;
 
-class InstagramFeed
+class InstagramCachedFeed implements InstagramFeedInterface
 {
-    const MEDIA_COUNT = 5;
+    const CACHE_DEFAULT_TTL = 600;
 
     /**
-     * @var Client
+     * @var CacheItemPoolInterface
      */
-    private $client;
+    private $cache;
 
     /**
-     * InstagramFeed constructor.
-     *
-     * @param \GuzzleHttp\Client $client
-     * @param string             $accessToken
+     * @var InstagramFeed
      */
-    public function __construct(\GuzzleHttp\Client $client, string $accessToken)
+    private $instagramFeed;
+
+    /**
+     * @var int
+     */
+    private $ttl;
+
+    public function __construct(CacheItemPoolInterface $cache, InstagramFeed $instagramFeed, int $ttl = self::CACHE_DEFAULT_TTL)
     {
-        $this->client = new Client($client, $accessToken);
+        $this->cache = $cache;
+        $this->instagramFeed = $instagramFeed;
+        $this->ttl = $ttl;
     }
 
-    /**
-     * @param int  $count Count of media to return
-     * @param null $maxId Return media earlier than this max_id
-     * @param null $minId Return media later than this min_id
-     *
-     * @return Media[]
-     * @throws InstagramFeedException
-     */
-    public function getMedia(int $count = self::MEDIA_COUNT, $maxId = null, $minId = null)
+    public function getMedia(int $count = self::MEDIA_COUNT, $maxId = null, $minId = null): array
     {
-        try {
-            $body = \GuzzleHttp\json_decode(
-                $this->client
-                    ->get($count, $maxId, $minId)
-                    ->getBody(),
-                true
-            );
+        $key = sprintf('instagram_feed_%s_%s_%s', $count, $maxId, $minId);
+        $cacheItem = $this->cache->getItem($key);
 
-            if (!isset($body['data']) || empty($body['data'])) {
-                return [];
-            }
-
-            $media = [];
-            foreach ($body['data'] as $data) {
-                $media[] = Media::create($data);
-            }
-
-            return $media;
-        } catch (\GuzzleHttp\Exception\RequestException $e) {
-            throw new InstagramFeedException($e->getMessage());
-        } catch (\InvalidArgumentException $e) {
-            throw new InstagramFeedException($e->getMessage());
+        if ($cacheItem->isHit()) {
+            return $cacheItem->get();
         }
+
+        $feed = $this->instagramFeed->getMedia($count, $maxId, $minId);
+
+        $cacheItem->set($feed);
+        $cacheItem->expiresAfter($this->ttl);
+
+        $this->cache->save($cacheItem);
+
+        return $feed;
     }
 }
