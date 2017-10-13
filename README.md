@@ -18,19 +18,22 @@ InstagramFeed requires a [Guzzle HTTP Client](http://docs.guzzlephp.org/en/stabl
 
 >[Here](https://elfsight.com/service/generate-instagram-access-token/) you can find a tool for generate your own instagram access token
 
+```php
     $instagramFeed = new InstagramFeed\InstagramFeed(
         new \GuzzleHttp\Client(),
         'your own access token'
     );
     
     $media = $instagramFeed->getMedia(); //will returns array of InstagramFeed\Model\Media objects
-    
+```
+
 ### Caching
 
 Instagram APIs come out with low rate limit. This means you have to cache responses in order to prevent errors. 
 The library provides a [PSR-6](http://www.php-fig.org/psr/psr-6/) cache decorator with allows you to easily cache responses.
 
-    $instagramFeed = new InstagramFeed\InstagramFeed(
+```php
+    $instagramFeed = new InstagramFeed\InstagramFeed(
         new \GuzzleHttp\Client(),
         'your own access token'
     );
@@ -41,5 +44,42 @@ The library provides a [PSR-6](http://www.php-fig.org/psr/psr-6/) cache decorato
         $ttl //defaults to 600 seconds
     );
     
-    $media = $instagramFeed->getMedia(); //will returns array of InstagramFeed\Model\Media objects
+    $media = $instagramCachedFeed->getMedia(); //will returns array of InstagramFeed\Model\Media objects
+```
+
+## Symfony Integration
+
+Instagram Feed can be easily configured as a service on your Symfony application.
+
+```yaml
+    services.yml
     
+    parameters:
+      app_instagram_access_token: 'your own token'
+    
+    services:
+        app.instagram_feed:
+            class: InstagramFeed\InstagramFeed
+            arguments:
+              - "@app.guzzle_client"
+              - "%app_instagram_access_token"
+    
+        app.instagram_cached_feed:
+            class: InstagramFeed\InstagramCachedFeed
+            arguments:
+              - "@cache.app"
+              - "@app.instagram_feed"
+            public: true
+
+```
+
+Then you can retrieve posts with:
+
+```php
+    $this->get('app.instagram_cached_feed')->getMedia();
+```
+
+## TODO
+
+- [ ] add support to other api endpoints
+- [ ] add support to other Instagram types (eg. video, gallery)
