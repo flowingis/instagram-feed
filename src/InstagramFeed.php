@@ -6,10 +6,8 @@ use InstagramFeed\Client\Client;
 use InstagramFeed\Exception\InstagramFeedException;
 use InstagramFeed\Model\Media;
 
-class InstagramFeed
+class InstagramFeed implements InstagramFeedInterface
 {
-    const MEDIA_COUNT = 5;
-
     /**
      * @var Client
      */
