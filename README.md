@@ -62,7 +62,7 @@ Instagram Feed can be easily configured as a service on your Symfony application
             class: InstagramFeed\InstagramFeed
             arguments:
               - "@app.guzzle_client"
-              - "%app_instagram_access_token"
+              - "%app_instagram_access_token%"
     
         app.instagram_cached_feed:
             class: InstagramFeed\InstagramCachedFeed
