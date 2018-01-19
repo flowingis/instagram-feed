@@ -49,7 +49,8 @@ The library provides a [PSR-6](http://www.php-fig.org/psr/psr-6/) cache decorato
 
 ## Symfony Integration
 
-Instagram Feed can be easily configured as a service on your Symfony application.
+Instagram Feed can be easily configured as a service on your Symfony application. 
+
 
 ```yaml
     services.yml
@@ -58,6 +59,10 @@ Instagram Feed can be easily configured as a service on your Symfony application
       app_instagram_access_token: 'your own token'
     
     services:
+        #if you already defined Guzzle as service, just use yours
+        app.guzzle_client:
+            class: GuzzleHttp\Client
+
         app.instagram_feed:
             class: InstagramFeed\InstagramFeed
             arguments:
